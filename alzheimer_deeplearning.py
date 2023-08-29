@@ -242,4 +242,47 @@ smote_train_data, smote_val_data, smote_train_labels, smote_val_labels = train_t
 
 EPOCHS = 50
 
-smote_history = model1.fit(smote_train_data, smote_train_labels, validation_data=(smote_val_data, smote_val_labels), epochs=EPOCHS,callbacks=CALLBACKS)
+history = model1.fit(smote_train_data, smote_train_labels, validation_data=(smote_val_data, smote_val_labels), epochs=EPOCHS,callbacks=CALLBACKS)
+
+train_accuracy = history.history['acc']
+val_accuracy = history.history['val_acc']
+
+train_loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+train_auc = history.history['auc']
+val_auc = history.history['val_auc']
+
+fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(12, 10))
+
+ax[0].set_title('SMOTE Training Accuracy vs. Epochs')
+ax[0].plot(train_accuracy, 'o-', label='Train Accuracy')
+ax[0].plot(val_accuracy, 'o-', label='Validation Accuracy')
+ax[0].set_xlabel('Epochs')
+ax[0].set_ylabel('Accuracy')
+ax[0].legend(loc='best')
+
+ax[1].set_title('SMOTE Training/Validation Loss vs. Epochs')
+ax[1].plot(train_loss, 'o-', label='Train Loss')
+ax[1].plot(val_loss, 'o-', label='Validation Loss')
+ax[1].set_xlabel('Epochs')
+ax[1].set_ylabel('Loss')
+ax[1].legend(loc='best')
+
+ax[2].set_title('SMOTE Training AUC vs. Epochs')
+ax[2].plot(train_auc, 'o-', label='Train AUC')
+ax[2].plot(val_auc, 'o-', label='Validation AUC')
+ax[2].set_xlabel('Epochs')
+ax[2].set_ylabel('AUC')
+ax[2].legend(loc='best')
+
+plt.tight_layout()
+plt.show()
+
+test_scores = model1.evaluate(smote_test_data, smote_test_labels)
+print("Testing Accuracy: %.2f%%"%(test_scores[1] * 100))
+
+model1.save("smote_cnnAlzheimer.h5")
+
+loaded_model = tf.keras.models.load_model("smote_cnnAlzheimer.h5")
+
