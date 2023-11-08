@@ -149,7 +149,7 @@ def dense_block(units, dropout_rate, act='relu'):
 IMAGE_SIZE = [128,128]
 act = 'relu'
 
-model1 = Sequential([
+model = Sequential([
         Input(shape=(*IMAGE_SIZE, 3)),
         Conv2D(16, 3, activation=act, padding='same'),
         Conv2D(16, 3, activation=act, padding='same'),
@@ -172,19 +172,19 @@ METRICS = [tf.keras.metrics.CategoricalAccuracy(name='acc'),
            tf.keras.metrics.Precision(name="prec"),
            tf.keras.metrics.Recall(name="recall")]
 
-model1.compile(optimizer='adam',
+model.compile(optimizer='adam',
               loss=tf.losses.CategoricalCrossentropy(),
               metrics=METRICS)
 
-model1.summary()
+model.summary()
 
-plot_model(model1)
+plot_model(model)
 
 CALLBACKS = [EarlyStopping(monitor='acc', min_delta=0.01, patience=5, mode='max')]
 
 EPOCHS = 50
 
-history = model1.fit(train_data, train_labels, validation_data=(val_data, val_labels), epochs=EPOCHS,callbacks=CALLBACKS)
+history = model.fit(train_data, train_labels, validation_data=(val_data, val_labels), epochs=EPOCHS,callbacks=CALLBACKS)
 
 train_accuracy = history.history['acc']
 val_accuracy = history.history['val_acc']
@@ -221,8 +221,13 @@ ax[2].legend(loc='best')
 plt.tight_layout()
 plt.show()
 
-test_scores = model1.evaluate(test_data, test_labels)
+test_scores = model.evaluate(test_data, test_labels)
 print("Testing Accuracy: %.2f%%"%(test_scores[1] * 100))
+
+
+model.save("cnnAlzheimer.h5")
+
+
 
 """#SMOTE Handling Imbalance Dataset Method"""
 
@@ -286,3 +291,23 @@ model1.save("smote_cnnAlzheimer.h5")
 
 loaded_model = tf.keras.models.load_model("smote_cnnAlzheimer.h5")
 
+
+from tensorflow.keras.preprocessing import image
+img_path="./datasets/ModerateDemented"
+
+img = image.load_img(img_path, target_size=(128, 128))  # Resize to match your model's input size
+img_array = image.img_to_array(img)
+img_array = np.expand_dims(img_array, axis=0)  # Add a batch dimension
+img_array = preprocess_input(img_array)
+
+predictions = loaded_model.predict(img_array)
+from tensorflow.keras.applications.imagenet_utils import decode_predictions
+
+# Decode the predictions (only for models trained on ImageNet)
+decoded_predictions = decode_predictions(predictions, top=1)[0]
+
+# Get the class label and probability of the top prediction
+class_label = decoded_predictions[0][1]
+probability = decoded_predictions[0][2]
+
+print(f"Predicted class: {class_label} (Probability: {probability:.2%})")
